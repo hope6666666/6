@@ -1,0 +1,91 @@
+import redis
+
+class RedisUtils:
+    def __init__(self, host='localhost', port=6379, db=0, password=None, max_connections=10):
+        """
+        初始化 Redis 连接池
+        :param host: Redis 服务器地址
+        :param port: Redis 服务器端口
+        :param db: Redis 数据库编号
+        :param password: Redis 密码
+        :param max_connections: 连接池最大连接数
+        """
+        self.pool = redis.ConnectionPool(host=host, port=port, db=db, password=password, max_connections=max_connections)
+        self.conn = redis.StrictRedis(connection_pool=self.pool)
+
+    def set(self, key, value, expire=None):
+        """
+        设置键值对
+        :param key: 键
+        :param value: 值
+        :param expire: 过期时间（单位：秒），默认为None，即不过期
+        """
+        self.conn.set(key, value, ex=expire)
+
+    def get(self, key):
+        """
+        获取键对应的值
+        :param key: 键
+        :return: 对应的值，若键不存在则返回None
+        """
+        return self.conn.get(key)
+
+    def delete(self, key):
+        """
+        删除指定键及其对应的值
+        :param key: 键
+        :return: 成功删除的键数量
+        """
+        return self.conn.delete(key)
+
+    def exists(self, key):
+        """
+        检查键是否存在
+        :param key: 键
+        :return: 若键存在则返回True，否则返回False
+        """
+        return self.conn.exists(key)
+
+    def expire(self, key, seconds):
+        """
+        设置键的过期时间
+        :param key: 键
+        :param seconds: 过期时间（单位：秒）
+        :return: 若键存在且设置成功，则返回True，否则返回False
+        """
+        return self.conn.expire(key, seconds)
+
+    def keys(self, pattern='*'):
+        """
+        根据指定模式匹配获取键的列表
+        :param pattern: 键的匹配模式，默认为'*'，匹配所有键
+        :return: 键的列表
+        """
+        return self.conn.keys(pattern)
+
+    def flushdb(self):
+        """
+        清空当前数据库中的所有键值对
+        """
+        self.conn.flushdb()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    redis_utils = RedisUtils(host='localhost', port=6379, db=0, password='your_redis_password', max_connections=10)
+    redis_utils.set('name', 'Alice', expire=3600)  # 设置名为 'name' 的键值对，过期时间为 3600 秒
+    print(redis_utils.get('name'))  # 获取名为 'name' 的键对应的值
+    print(redis_utils.exists('name'))  # 检查键 'name' 是否存在
+    redis_utils.delete('name')  # 删除名为 'name' 的键及其对应的值
+    print(redis_utils.exists('name'))  # 再次检查键 'name' 是否存在
