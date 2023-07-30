@@ -1,0 +1,29 @@
+class RedisUtils:
+    # ... 其他方法 ...
+
+    def add_role(self, role_name, allowed_endpoints):
+        """
+        添加角色及其允许访问的接口
+        :param role_name: 角色名
+        :param allowed_endpoints: 允许访问的接口列表
+        """
+        self.conn.hmset(role_name, {'endpoints': ','.join(allowed_endpoints)})
+
+    def get_allowed_endpoints_for_role(self, role_name):
+        """
+        获取角色允许访问的接口列表
+        :param role_name: 角色名
+        :return: 允许访问的接口列表
+        """
+        endpoints = self.conn.hget(role_name, 'endpoints')
+        return endpoints.split(',') if endpoints else []
+
+    def is_endpoint_allowed_for_role(self, role_name, endpoint):
+        """
+        检查角色是否允许访问指定接口
+        :param role_name: 角色名
+        :param endpoint: 接口名
+        :return: 若允许访问则返回True，否则返回False
+        """
+        allowed_endpoints = self.get_allowed_endpoints_for_role(role_name)
+        return endpoint in allowed_endpoints
